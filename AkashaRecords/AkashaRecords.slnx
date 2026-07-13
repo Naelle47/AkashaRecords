@@ -1,1 +1,19 @@
-<Solution />
+<Solution>
+  <Folder Name="/00_Documentation/" />
+  <Folder Name="/01_Core/">
+    <Project Path="AkashaRecords.Core/AkashaRecords.Core.csproj" />
+  </Folder>
+  <Folder Name="/02_Infrastructure/">
+    <Project Path="AkashaRecords.Infrastructure/AkashaRecords.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/03_Web/">
+    <Project Path="AkashaRecords.Web/AkashaRecords.Web.csproj" />
+  </Folder>
+  <Folder Name="/04_DbMigrator/">
+    <Project Path="AkashaRecords.DbMigrator/AkashaRecords.DbMigrator.csproj" />
+  </Folder>
+  <Folder Name="/05_Tests/">
+    <Project Path="AkashaRecords.IntegrationTests/AkashaRecords.IntegrationTests.csproj" />
+    <Project Path="AkashaRecords.UnitTests/AkashaRecords.UnitTests.csproj" />
+  </Folder>
+</Solution>
