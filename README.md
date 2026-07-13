@@ -17,7 +17,7 @@ Le projet est la **refonte** d'une première version (wiki). L'objectif n'est pa
 
 ## Stack technique
 
-- **ASP.NET MVC** (.NET) — application web
+- **ASP.NET MVC** (.NET 10) — application web
 - **Dapper + Npgsql** — accès données
 - **PostgreSQL** — base de données
 - **DbUp** — migrations SQL versionnées
@@ -39,19 +39,18 @@ Web → Infrastructure → Core
 
 Détails de conception dans [`docs/`](docs/).
 
-## Structure du dépôt
+## Organisation de la solution
+
+Dossiers de solution numérotés, du cœur vers l'extérieur :
 
 ```
-src/
-  AkashaRecords.Core/
-  AkashaRecords.Infrastructure/
-  AkashaRecords.Web/
-db/
-  AkashaRecords.DbMigrator/
-tests/
-  AkashaRecords.UnitTests/
-  AkashaRecords.IntegrationTests/
-docs/              modèle de domaine, UML, notes d'architecture
+AkashaRecords.sln
+├─ 00_Documentation    notes d'architecture, modèle de domaine, UML
+├─ 01_Core             AkashaRecords.Core — modèle métier (entités, contrats)
+├─ 02_Infrastructure   AkashaRecords.Infrastructure — Dapper/Npgsql, Unit of Work
+├─ 03_Web              AkashaRecords.Web — application MVC
+├─ 04_DbMigrator       AkashaRecords.DbMigrator — migrations DbUp (autonome)
+└─ 05_Tests            AkashaRecords.UnitTests, AkashaRecords.IntegrationTests
 ```
 
 ## Statut
