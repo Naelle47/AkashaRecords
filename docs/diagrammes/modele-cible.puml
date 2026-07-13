@@ -1,0 +1,213 @@
+@startuml AkashaRecords_Domaine_V2
+title AkashaRecords V2 — Modèle de domaine
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide circle
+
+' ===== 0. Référentiels communs (transverses) =====
+package "0 · Référentiels communs" #ECECEC {
+    enum Rarity {
+        THREE_STAR
+        FOUR_STAR
+        FIVE_STAR
+    }
+    enum StatType {
+        FLAT
+        PERCENT
+    }
+    enum ElementSource {
+        VISION
+        RESONANCE
+        UNKNOWN
+    }
+}
+
+' ===== 1. Personnage & référentiels (lore + gameplay) =====
+package "1 · Personnage & référentiels" #E6F0FF {
+    class Character {
+        +id : int
+        +nom : string
+        +rarete : Rarity
+    }
+    class CharacterElement {
+        +id : int
+        +estPrincipal : bool
+        +source : ElementSource
+    }
+    class Element {
+        +id : int
+        +nom : string
+        +image : string
+    }
+    class Region {
+        +id : int
+        +nom : string
+        +image : string
+    }
+    class WeaponType {
+        +id : int
+        +nom : string
+    }
+}
+
+' ===== 2. Guide de build (agrégat) =====
+package "2 · Guide de build — agrégat" #E7F6EC {
+    class BuildGuide {
+        +id : int
+        +titre : string
+        +description : string
+        +dateMaj : date
+    }
+    class BuildRole {
+        +id : int
+        +role : CombatRole
+        +priorite : int
+    }
+    enum CombatRole {
+        MAIN_DPS
+        SUB_DPS
+        SUPPORT
+        HEAL
+        SHIELD
+        BUFFER
+        DRIVER
+    }
+    class GameVersion {
+        +id : int
+        +version : string
+        +sortie : date
+    }
+}
+
+' ===== 3. Recommandations (composées par le guide) =====
+package "3 · Recommandations" #FFF3E0 {
+    class WeaponRecommendation {
+        +id : int
+        +priorite : int
+        +rang : RecommendationTier
+        +note : string
+    }
+    class ArtifactRecommendation {
+        +id : int
+        +priorite : int
+        +rang : RecommendationTier
+        +note : string
+    }
+    class ArtifactSetRecommendation {
+        +id : int
+        +nbPieces : int
+        +priorite : int
+    }
+    class MainStatRecommendation {
+        +id : int
+        +slot : ArtifactSlotType
+    }
+    class SubStatRecommendation {
+        +id : int
+        +priorite : int
+        +note : string
+    }
+    enum RecommendationTier {
+        BIS
+        HIGH
+        MEDIUM
+        LOW
+        SITUATIONAL
+        F2P
+        CRAFTABLE
+        EVENT
+    }
+}
+
+' ===== 4. Objets & stats =====
+package "4 · Objets & stats" #F1E9FB {
+    class Weapon {
+        +id : int
+        +nom : string
+        +rarete : Rarity
+        +atkBase : int
+    }
+    class WeaponSecondaryStat {
+        +id : int
+        +valeurMax : decimal
+    }
+    class ArtifactSet {
+        +id : int
+        +nom : string
+        +effet2p : string
+        +effet4p : string
+    }
+    enum ArtifactSlotType {
+        FLOWER
+        PLUME
+        SANDS
+        GOBLET
+        CIRCLET
+    }
+    class Stat {
+        +id : int
+        +nom : string
+        +type : StatType
+    }
+}
+
+' ===== Caractérisation du personnage =====
+Character "1" *-- "*" CharacterElement : élément jouable
+CharacterElement "*" --> "1" Element
+CharacterElement ..> ElementSource
+Character "*" --> "1" WeaponType : manie
+Character "*" --> "0..1" Region : origine
+Character ..> Rarity
+
+' ===== Guide, rôles & patch =====
+Character "1" --> "*" BuildGuide : possède
+BuildGuide "1" *-- "*" BuildRole
+BuildRole ..> CombatRole
+BuildGuide "*" --> "1" GameVersion : patch
+
+' ===== Compositions (le guide possède ses recommandations) =====
+BuildGuide "1" *-- "*" WeaponRecommendation
+BuildGuide "1" *-- "*" ArtifactRecommendation
+BuildGuide "1" *-- "*" MainStatRecommendation
+BuildGuide "1" *-- "*" SubStatRecommendation
+
+' ===== Références des recommandations =====
+WeaponRecommendation "*" --> "1" Weapon
+WeaponRecommendation ..> RecommendationTier
+ArtifactRecommendation "1" *-- "*" ArtifactSetRecommendation
+ArtifactRecommendation ..> RecommendationTier
+ArtifactSetRecommendation "*" --> "1" ArtifactSet
+Weapon "*" --> "1" WeaponType
+Weapon "1" --> "0..1" WeaponSecondaryStat : statSecondaire
+WeaponSecondaryStat "*" --> "1" Stat
+Weapon ..> Rarity
+Stat ..> StatType
+MainStatRecommendation ..> ArtifactSlotType
+MainStatRecommendation "*" --> "1" Stat
+SubStatRecommendation "*" --> "1" Stat
+
+' ===== Règles de gestion =====
+note bottom of CharacterElement
+  Voyageur : plusieurs éléments (source RESONANCE)
+  Un seul estPrincipal = true
+end note
+note bottom of BuildRole
+  priorite >= 1
+  Une seule priorité 1 par BuildGuide
+end note
+note bottom of ArtifactRecommendation
+  Somme des nbPieces = 4
+  (un set 4pc, ou deux sets 2+2)
+end note
+note bottom of MainStatRecommendation
+  Slot ∈ {SANDS, GOBLET, CIRCLET}
+  FLOWER = PV, PLUME = ATQ (fixes)
+end note
+note bottom of WeaponRecommendation
+  Invariant : Weapon.WeaponType = Character.WeaponType
+end note
+
+@enduml

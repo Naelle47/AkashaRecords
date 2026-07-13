@@ -1,0 +1,111 @@
+---
+title: AkashaRecords v4 — Schéma (état actuel)
+---
+erDiagram
+
+    %% ===== Couche 1 : référence =====
+    elements {
+        int id PK
+        varchar name
+        varchar icon_url
+    }
+    weapon_types {
+        int id PK
+        varchar name
+        varchar icon_url
+    }
+    regions {
+        int id PK
+        varchar name
+        int sort_order
+        varchar icon_url
+    }
+    character_roles {
+        int id PK
+        varchar name
+    }
+
+    %% ===== Couche 2 : principales =====
+    characters {
+        int id PK
+        varchar name
+        int rarity
+        date release_date
+        varchar icon_url
+        int element_id FK "nullable (Traveler)"
+        int weapon_type_id FK
+        int region_id FK "nullable (Aloy, Skirk)"
+    }
+    weapons {
+        int id PK
+        varchar name
+        int rarity
+        int weapon_type_id FK
+        text passive_ability
+        varchar icon_url
+        varchar source
+        varchar series
+    }
+    artifacts {
+        int id PK
+        varchar name
+        text bonus_2pc
+        text bonus_4pc
+        varchar icon_url
+    }
+
+    %% ===== Couche 3 : builds =====
+    builds {
+        int id PK
+        int character_id FK
+        int role_id FK
+        varchar name
+        text stat_thresholds
+        text stat_goals
+    }
+    build_weapons {
+        int id PK
+        int build_id FK
+        int weapon_id FK
+        int priority
+        text note
+    }
+    build_artifacts {
+        int id PK
+        int build_id FK
+        int artifact_id FK
+        int piece_count
+        int priority
+        int combo_group
+    }
+    build_main_stats {
+        int id PK
+        int build_id FK
+        varchar slot "enum à trancher"
+        varchar stat "enum à trancher"
+        int priority
+    }
+    build_sub_stats {
+        int id PK
+        int build_id FK
+        varchar stat "enum à trancher"
+        int priority
+    }
+
+    %% ===== Relations (référence -> principales) =====
+    elements        |o--o{ characters : element_id
+    weapon_types    ||--o{ characters : weapon_type_id
+    regions         |o--o{ characters : region_id
+    weapon_types    ||--o{ weapons : weapon_type_id
+
+    %% ===== Relations (principales/référence -> builds) =====
+    characters      ||--o{ builds : character_id
+    character_roles ||--o{ builds : role_id
+
+    %% ===== Relations (builds -> sous-tables) =====
+    builds          ||--o{ build_weapons : build_id
+    builds          ||--o{ build_artifacts : build_id
+    builds          ||--o{ build_main_stats : build_id
+    builds          ||--o{ build_sub_stats : build_id
+    weapons         ||--o{ build_weapons : weapon_id
+    artifacts       ||--o{ build_artifacts : artifact_id

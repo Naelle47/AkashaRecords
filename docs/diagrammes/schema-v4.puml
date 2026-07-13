@@ -1,0 +1,137 @@
+@startuml AkashaRecords_v4_Schema
+title AkashaRecords v4 — Schéma (état actuel)
+
+skinparam shadowing false
+skinparam linetype ortho
+hide circle
+hide empty members
+
+' Notation : PK = clé primaire, FK = clé étrangère
+' Multiplicité : 1 (côté référence) --> 0..* (côté dépendant)
+
+' ===== Couche 1 : référence =====
+package "Couche 1 · référence" #E6F0FF {
+    entity elements {
+        + id : int <<PK>>
+        --
+        name : varchar
+        icon_url : varchar
+    }
+    entity weapon_types {
+        + id : int <<PK>>
+        --
+        name : varchar
+        icon_url : varchar
+    }
+    entity regions {
+        + id : int <<PK>>
+        --
+        name : varchar
+        sort_order : int
+        icon_url : varchar
+    }
+    entity character_roles {
+        + id : int <<PK>>
+        --
+        name : varchar
+    }
+}
+
+' ===== Couche 2 : principales =====
+package "Couche 2 · principales" #E7F6EC {
+    entity characters {
+        + id : int <<PK>>
+        --
+        name : varchar
+        rarity : int
+        release_date : date
+        icon_url : varchar
+        element_id : int <<FK>> (nullable)
+        weapon_type_id : int <<FK>>
+        region_id : int <<FK>> (nullable)
+    }
+    entity weapons {
+        + id : int <<PK>>
+        --
+        name : varchar
+        rarity : int
+        weapon_type_id : int <<FK>>
+        passive_ability : text
+        icon_url : varchar
+        source : varchar
+        series : varchar
+    }
+    entity artifacts {
+        + id : int <<PK>>
+        --
+        name : varchar
+        bonus_2pc : text
+        bonus_4pc : text
+        icon_url : varchar
+    }
+}
+
+' ===== Couche 3 : builds =====
+package "Couche 3 · builds" #FFF3E0 {
+    entity builds {
+        + id : int <<PK>>
+        --
+        character_id : int <<FK>>
+        role_id : int <<FK>>
+        name : varchar
+        stat_thresholds : text
+        stat_goals : text
+    }
+    entity build_weapons {
+        + id : int <<PK>>
+        --
+        build_id : int <<FK>>
+        weapon_id : int <<FK>>
+        priority : int
+        note : text
+    }
+    entity build_artifacts {
+        + id : int <<PK>>
+        --
+        build_id : int <<FK>>
+        artifact_id : int <<FK>>
+        piece_count : int
+        priority : int
+        combo_group : int
+    }
+    entity build_main_stats {
+        + id : int <<PK>>
+        --
+        build_id : int <<FK>>
+        slot : varchar
+        stat : varchar
+        priority : int
+    }
+    entity build_sub_stats {
+        + id : int <<PK>>
+        --
+        build_id : int <<FK>>
+        stat : varchar
+        priority : int
+    }
+}
+
+' ===== Relations (référence -> principales) =====
+elements        "1" --> "0..*" characters : element_id
+weapon_types    "1" --> "0..*" characters : weapon_type_id
+regions         "1" --> "0..*" characters : region_id
+weapon_types    "1" --> "0..*" weapons : weapon_type_id
+
+' ===== Relations (principales/référence -> builds) =====
+characters      "1" --> "0..*" builds : character_id
+character_roles "1" --> "0..*" builds : role_id
+
+' ===== Relations (builds -> sous-tables) =====
+builds    "1" --> "0..*" build_weapons : build_id
+builds    "1" --> "0..*" build_artifacts : build_id
+builds    "1" --> "0..*" build_main_stats : build_id
+builds    "1" --> "0..*" build_sub_stats : build_id
+weapons   "1" --> "0..*" build_weapons : weapon_id
+artifacts "1" --> "0..*" build_artifacts : artifact_id
+
+@enduml

@@ -1,0 +1,187 @@
+classDiagram
+direction TB
+
+%% ===== 0. Référentiels communs =====
+class Rarity {
+    <<enumeration>>
+    THREE_STAR
+    FOUR_STAR
+    FIVE_STAR
+}
+class StatType {
+    <<enumeration>>
+    FLAT
+    PERCENT
+}
+class ElementSource {
+    <<enumeration>>
+    VISION
+    RESONANCE
+    UNKNOWN
+}
+
+%% ===== 1. Personnage & référentiels =====
+class Character {
+    +int id
+    +string nom
+    +Rarity rarete
+}
+class CharacterElement {
+    +int id
+    +bool estPrincipal
+    +ElementSource source
+}
+class Element {
+    +int id
+    +string nom
+    +string image
+}
+class Region {
+    +int id
+    +string nom
+    +string image
+}
+class WeaponType {
+    +int id
+    +string nom
+}
+
+%% ===== 2. Guide de build (agrégat) =====
+class BuildGuide {
+    +int id
+    +string titre
+    +string description
+    +date dateMaj
+}
+class BuildRole {
+    +int id
+    +CombatRole role
+    +int priorite
+}
+class CombatRole {
+    <<enumeration>>
+    MAIN_DPS
+    SUB_DPS
+    SUPPORT
+    HEAL
+    SHIELD
+    BUFFER
+    DRIVER
+}
+class GameVersion {
+    +int id
+    +string version
+    +date sortie
+}
+
+%% ===== 3. Recommandations =====
+class WeaponRecommendation {
+    +int id
+    +int priorite
+    +RecommendationTier rang
+    +string note
+}
+class ArtifactRecommendation {
+    +int id
+    +int priorite
+    +RecommendationTier rang
+    +string note
+}
+class ArtifactSetRecommendation {
+    +int id
+    +int nbPieces
+    +int priorite
+}
+class MainStatRecommendation {
+    +int id
+    +ArtifactSlotType slot
+}
+class SubStatRecommendation {
+    +int id
+    +int priorite
+    +string note
+}
+class RecommendationTier {
+    <<enumeration>>
+    BIS
+    HIGH
+    MEDIUM
+    LOW
+    SITUATIONAL
+    F2P
+    CRAFTABLE
+    EVENT
+}
+
+%% ===== 4. Objets & stats =====
+class Weapon {
+    +int id
+    +string nom
+    +Rarity rarete
+    +int atkBase
+}
+class WeaponSecondaryStat {
+    +int id
+    +decimal valeurMax
+}
+class ArtifactSet {
+    +int id
+    +string nom
+    +string effet2p
+    +string effet4p
+}
+class ArtifactSlotType {
+    <<enumeration>>
+    FLOWER
+    PLUME
+    SANDS
+    GOBLET
+    CIRCLET
+}
+class Stat {
+    +int id
+    +string nom
+    +StatType type
+}
+
+%% ===== Caractérisation du personnage =====
+Character "1" *-- "*" CharacterElement : élément jouable
+CharacterElement "*" --> "1" Element
+CharacterElement ..> ElementSource
+Character "*" --> "1" WeaponType : manie
+Character "*" --> "0..1" Region : origine
+Character ..> Rarity
+
+%% ===== Guide, rôles & patch =====
+Character "1" --> "*" BuildGuide : possède
+BuildGuide "1" *-- "*" BuildRole
+BuildRole ..> CombatRole
+BuildGuide "*" --> "1" GameVersion : patch
+
+%% ===== Compositions (le guide possède ses recommandations) =====
+BuildGuide "1" *-- "*" WeaponRecommendation
+BuildGuide "1" *-- "*" ArtifactRecommendation
+BuildGuide "1" *-- "*" MainStatRecommendation
+BuildGuide "1" *-- "*" SubStatRecommendation
+
+%% ===== Références des recommandations =====
+WeaponRecommendation "*" --> "1" Weapon
+WeaponRecommendation ..> RecommendationTier
+ArtifactRecommendation "1" *-- "*" ArtifactSetRecommendation
+ArtifactRecommendation ..> RecommendationTier
+ArtifactSetRecommendation "*" --> "1" ArtifactSet
+Weapon "*" --> "1" WeaponType
+Weapon "1" --> "0..1" WeaponSecondaryStat : statSecondaire
+WeaponSecondaryStat "*" --> "1" Stat
+Weapon ..> Rarity
+Stat ..> StatType
+MainStatRecommendation ..> ArtifactSlotType
+MainStatRecommendation "*" --> "1" Stat
+SubStatRecommendation "*" --> "1" Stat
+
+%% ===== Règles de gestion =====
+note for CharacterElement "Voyageur : plusieurs éléments (source RESONANCE). Un seul estPrincipal = true."
+note for BuildRole "priorite >= 1 ; une seule priorité 1 par BuildGuide."
+note for ArtifactRecommendation "Somme des nbPieces = 4 (un set 4pc, ou deux sets 2+2)."
+note for MainStatRecommendation "Slot in SANDS, GOBLET, CIRCLET — FLOWER = PV, PLUME = ATQ (fixes)."
+note for WeaponRecommendation "Invariant : Weapon.WeaponType = Character.WeaponType"
